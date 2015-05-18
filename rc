@@ -1,10 +1,22 @@
+(require 'paste)
+(unbind-keys window-keymap "W-Down" "W-Up")
+
 (bind-keys global-keymap
-           "W-S-Left"  'pack-window-left
-           "W-S-Right" 'pack-window-right
-           "W-S-Up"    'pack-window-up
-           "W-S-Down"  'pack-window-down
+           "W-S-Up"    'send-to-previous-workspace
+           "W-S-Down"  'send-to-next-workspace
            "W-v"       'maximize-fill-window-vertically-toggle
-           "W-h"       'maximize-fill-window-horizontally-toggle)
+           "W-h"       'maximize-fill-window-horizontally-toggle
+           "W-x"       'call-command
+           "W-Down"    'next-workspace
+           "W-Up"      'previous-workspace
+           "W-1"      '(activate-workspace 1)
+           "W-2"      '(activate-workspace 2)
+           "W-3"      '(activate-workspace 3)
+           "W-4"      '(activate-workspace 4)
+           "W-S-1"      '(send-to-workspace 1)
+           "W-S-2"      '(send-to-workspace 2)
+           "W-S-3"      '(send-to-workspace 3)
+           "W-S-4"      '(send-to-workspace 4))
 
 (require 'iswitch-window)
 (bind-keys global-keymap "W-s" 'iswitch-window)
@@ -59,3 +71,11 @@
            "W-." 'alignr-grow-keymap)
 (bind-keys global-keymap
            "W-," 'alignr-shrink-keymap)
+(defvar window-pack-keymap
+  (bind-keys (make-keymap)
+             "a"  'pack-window-left
+             "d" 'pack-window-right
+             "w"    'pack-window-up
+             "s"  'pack-window-down))
+(bind-keys global-keymap
+           "W-S-m" 'window-pack-keymap)
