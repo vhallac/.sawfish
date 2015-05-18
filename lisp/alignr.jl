@@ -18,32 +18,53 @@
 
 (require 'rects)
 (require 'maximize)
+(current-head-offset)
+(current-head-dimensions)
 
 (define (make-alignr-commands)
+
+  (define (from-hv-pair-select orientation pair)
+    (define point-selector `((:vertical ,cdr)
+                             (:horizontal ,car)))
+    (funcall (cadr (assq orientation point-selector)) pair))
+
+  (define (current-head-grid-points orientation)
+    (let ((start (from-hv-pair-select orientation (current-head-offset)))
+          (size  (from-hv-pair-select orientation (current-head-dimensions))))
+      (list start (+ size start))))
+      ;; Return start, 1/3 of screen, 1/2 of screen, 2/3 of screen, and end
+      ;; (mapcar (lambda (x)
+      ;;           (inexact->exact
+      ;;            (round (+ start (* x size)))))
+      ;;         (list 0 (/ 1.0 3) (/ 1.0 2) (/ 2.0 3) 1))))
+
+(round (* 3 (/ 1 3)))
   (define (relevant-windows window)
     (remove-if (lambda (win)
                  (or (eq win window)
                      (window-iconified-p win)
-                     (not (window-appears-in-workspace-p win current-workspace))))
+                     (not (window-appears-in-workspace-p win current-workspace))
+                     (window-outside-viewport-p win)))
                (managed-windows)))
 
   (define (grid-points-for window orientation)
     (define selectors `((:vertical ,cadr ,cadddr)
                         (:horizontal ,car ,caddr)))
-    (let ((rects (rectangles-from-windows (relevant-windows window)))
-          (funcs (cdr (assq orientation selectors))))
-      (unless (null funcs)
-        (uniquify-list
-         (nconc (mapcar (car funcs) rects)
-                (mapcar (cadr funcs) rects))))))
+    (uniquify-list
+     (nconc (current-head-grid-points orientation)
+            (let ((rects (rectangles-from-windows (relevant-windows window)))
+                  (funcs (cdr (assq orientation selectors))))
+              (unless (null funcs)
+                (nconc (mapcar (car funcs) rects)
+                       (mapcar (cadr funcs) rects)))))))
 
   (define (between pos min max)
-    "t if min<pos<max"
+    "t if min<=pos<=max"
     (and (>= pos min)
          (<= pos max)))
 
   (define (within pos target delta)
-    "t if target-delta < pos < target or target > pos > target+delta"
+    "t if target-delta <= pos <= target or target >= pos >= target+delta"
     (or (between pos (- target delta) target)
         (between pos target (+ target delta))))
 
